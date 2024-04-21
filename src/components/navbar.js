@@ -4,7 +4,7 @@ import './navbar.css';
 export default function Navbar(){
   return (
     <div className="heading">
-    <h1>This is my map App</h1>
+    <h1>Maps maps maps maps maps maps</h1>
     </div>
   );
 }
