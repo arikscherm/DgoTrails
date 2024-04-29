@@ -1,153 +1,103 @@
-// import React, { useRef, useEffect, useState } from 'react';
-// import maplibregl from 'maplibre-gl';
-// import 'maplibre-gl/dist/maplibre-gl.css';
-// import './map.css';
-
-// export default function Map() {
-//   const api_key = '8klodUSY7uqQuezf04fm';
-//   const mapContainer = useRef(null);
-//   const map = useRef(null);
-//   const [lng] = useState(-107.87931772249397);
-//   const [lat] = useState(37.274073712177284);
-//   const [zoom] = useState(16);
-//   //const [API_KEY] = useState(api_key);
-
-//   useEffect(() => {
-//     // stops map from intializing more than once
-//     if (map.current) return;
-
-//     //initialize new map
-//     map.current = new maplibregl.Map({
-//       container: mapContainer.current,
-//       style: `https://api.maptiler.com/maps/streets-v2/style.json?key=${api_key}`,
-//       center: [lng, lat],
-//       zoom: zoom,
-//     });
-
-//     //create new controls and add to current map
-//     map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
-//     map.current.addControl(new maplibregl.FullscreenControl());
-//     map.current.addControl(new maplibregl.GeolocateControl({
-//         positionOptions: {
-//             enableHighAccuracy: true
-//         },
-//         trackUserLocation: true
-//     }));
-
-//     //add marker to current map, set color and location
-//     new maplibregl.Marker({color: "#FF0080"})
-//     .setLngLat([-107.88019551656059, 37.271466528490556])
-//     .addTo(map.current);
-
-//   }, [api_key, lng, lat, zoom]);
-
-//   return (
-//     <div className="map-wrap">
-//       <div ref={mapContainer} className="map" />
-//     </div>
-//   );
-// }
-
 import React, { useRef, useEffect, useState } from 'react';
-import maplibregl from 'maplibre-gl';
-import 'maplibre-gl/dist/maplibre-gl.css';
-import './map.css';
+import mapboxgl from '!mapbox-gl'; // eslint-disable-line import/no-webpack-loader-syntax
+
+mapboxgl.accessToken = 'pk.eyJ1IjoiZXRlZXJpbmciLCJhIjoiY2x2bGh2N3R5MmNwbDJqczIwOW41eG83diJ9.VHctcEQpaf5jumCjZVoBkA';
 
 export default function Map() {
-  const api_key = '8klodUSY7uqQuezf04fm';
+
+  //set default states
   const mapContainer = useRef(null);
   const map = useRef(null);
-  const [lng] = useState(-107.87931772249397);
-  const [lat] = useState(37.274073712177284);
-  const [zoom] = useState(16);
+  const [lng, setLng] = useState(-107.8647);
+  const [lat, setLat] = useState(37.2857);
+  const [zoom, setZoom] = useState(13);
+
+  const geojson = {
+    type: 'FeatureCollection',
+    features: [
+      {
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [-107.88026565317828, 37.27158829270832]
+        },
+        properties: {
+          title: 'Location',
+          description: 'Leland House/Lola\'s Place'
+        }
+      },
+      {
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [-107.84826936137434, 37.29866330413408]
+        },
+        properties: {
+          title: 'Location',
+          description: 'Bread!'
+        }
+      }
+    ]
+  };
 
   useEffect(() => {
-    if (map.current) return;
+    //if no map present, create new map with specified properties
+    if (!map.current) {
+      console.log('no map to display')
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/outdoors-v12',
+        center: [lng, lat],
+        zoom: zoom
+      });
 
-    map.current = new maplibregl.Map({
-      container: mapContainer.current,
-      style: `https://api.maptiler.com/maps/streets-v2/style.json?key=${api_key}`,
-      center: [lng, lat],
-      zoom: zoom,
-    });
-
-    map.current.on('load', () => {
-      const geojson = {
-        type: 'FeatureCollection',
-        features: [
-          {
-            type: 'Feature',
-            properties: {
-              message: 'Foo',
-              iconSize: [60, 60]
-            },
-            geometry: {
-              type: 'Point',
-              coordinates: [-66.324462890625, -16.024695711685304]
-            }
-          },
-          {
-            type: 'Feature',
-            properties: {
-              message: 'Bar',
-              iconSize: [50, 50]
-            },
-            geometry: {
-              type: 'Point',
-              coordinates: [-61.2158203125, -15.97189158092897]
-            }
-          },
-          {
-            type: 'Feature',
-            properties: {
-              message: 'Baz',
-              iconSize: [40, 40]
-            },
-            geometry: {
-              type: 'Point',
-              coordinates: [-63.29223632812499, -18.28151823530889]
-            }
-          }
-        ]
-      };
-
-      geojson.features.forEach(marker => {
-        const el = document.createElement('div');
-        el.className = 'marker';
-        el.style.backgroundImage = `url(https://placekitten.com/g/${marker.properties.iconSize.join('/')})`;
-        el.style.width = `${marker.properties.iconSize[0]}px`;
-        el.style.height = `${marker.properties.iconSize[1]}px`;
-
-        el.addEventListener('click', () => {
-          window.alert(marker.properties.message);
+      map.current.on('style.load', () => {
+        map.current.addSource('durango-trails', {
+            'type': 'vector',
+            'url': 'mapbox://eteering.ckvraxe0z00iq22nlvb2aowpq-75urt'
         });
 
-        new maplibregl.Marker({ element: el })
-          .setLngLat(marker.geometry.coordinates)
-          .addTo(map.current);
-      });
+        map.current.addLayer({
+            'id': 'durango-trails-line',
+            'type': 'line',
+            //'slot': 'middle',
+            'source': 'durango-trails',
+            'source-layer': 'Durango_Trails_Database',
+            "paint": {
+              "line-color": "#AA0000",
+              "line-width": 2
+            },        
+            'layout': {},
+        });
     });
 
-    map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
-    map.current.addControl(new maplibregl.FullscreenControl());
-    map.current.addControl(new maplibregl.GeolocateControl({
-      positionOptions: {
-        enableHighAccuracy: true
-      },
-      trackUserLocation: true
-    }));
-
-    return () => {
-      if (map.current) {
-        map.current.remove();
-        map.current = null;
-      }
-    };
-  }, [api_key, lng, lat, zoom]);
+  
+      map.current.on('load', () => {
+        // Add markers
+        geojson.features.forEach((feature) => {
+          const el = document.createElement('div');
+          el.className = 'marker';
+          new mapboxgl.Marker(el)
+            .setLngLat(feature.geometry.coordinates)
+            .setPopup(new mapboxgl.Popup().setHTML(`<h3>${feature.properties.title}</h3><p>${feature.properties.description}</p>`))
+            .addTo(map.current);
+        });
+      });
+  
+      map.current.on('move', () => {
+        setLng(map.current.getCenter().lng.toFixed(4));
+        setLat(map.current.getCenter().lat.toFixed(4));
+        setZoom(map.current.getZoom().toFixed(2));
+      });
+    }
+  }, [geojson.features, lng, lat, zoom]);
 
   return (
     <div className="map-wrap">
-      <div ref={mapContainer} className="map" />
+      <div className="sidebar">
+        Longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
+      </div>
+      <div ref={mapContainer} className="map-container" />
     </div>
   );
 }
