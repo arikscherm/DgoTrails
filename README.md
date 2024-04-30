@@ -1,6 +1,6 @@
 # An application to get started finding your next trail run in and around Durango!
 
-This project is in the works - soon you'll have a one-stop shop for trail access around southwest Colordo!
+This project is in the works - soon you'll have a one-stop shop for trail access around southwest Colorado!
 
 ## Trail data
 
