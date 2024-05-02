@@ -1,21 +1,19 @@
 import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from '!mapbox-gl'; // eslint-disable-line import/no-webpack-loader-syntax
-//import Sidebar from './Sidebar';
+import Sidebar from './Sidebar';
 
-//move to env file
+//initialize vars
 const mapboxToken = process.env.REACT_APP_MAPBOX_TOKEN;
 const mapboxURL = process.env.REACT_APP_TILESET_URL;
-
 mapboxgl.accessToken = mapboxToken;
 
 export default function Map() {
-  //initialize state vars
+  // initialize state vars
   const mapContainer = useRef(null);
   const map = useRef(null);
   const [lng, setLng] = useState(-107.8647);
   const [lat, setLat] = useState(37.2857);
   const [zoom, setZoom] = useState(13);
-  //const [loading, setLoading] = useState(true);
   const [selectedTrail, setSelectedTrail] = useState(null);
 
   useEffect(() => {
@@ -28,6 +26,7 @@ export default function Map() {
         zoom: zoom
       });
 
+      //add nav controls for user and geolocation
       map.current.addControl(new mapboxgl.NavigationControl());
       map.current.addControl(
         new mapboxgl.GeolocateControl({
@@ -59,50 +58,31 @@ export default function Map() {
             'line-width': 2
           }
         });
-
-        //setLoading(false);
       });
+    map.current.on('click', 'durango-trails', (e) => {
 
-      //when a trail is clicked, show popup info and zoom
-      map.current.on('click', 'durango-trails', (e) => {
-        const trailInfoHTML = `
-          <h3>Trail Information</h3>
-          <p><strong>Trail name:</strong> ${e.features[0].properties.TRAILNAME}</p>
-          <p><strong>Length:</strong> ${parseFloat(e.features[0].properties.LENGTH_MILES).toFixed(2)} miles</p>
-          <p><strong>Trail system:</strong> ${e.features[0].properties.SYSTEM}</p>
-          <p><strong>Trail use:</strong> ${e.features[0].properties.USAGE}</p>
-          <p><strong>Difficulty rating:</strong> ${e.features[0].properties.RATING}</p>
-        `;
-
-        new mapboxgl.Popup()
-          .setLngLat(e.lngLat)
-          .setHTML(trailInfoHTML)
-          .addTo(map.current);
-
-        if (selectedTrail) {
-          // map.current.setFeatureState({ source: 'durango-trails', id: selectedTrail }, { selected: false });
-          map.current.setFeatureState(
-            { source: 'durango-trails', sourceLayer: 'Durango_Trails_Database', id: selectedTrail },
-            { selected: false }
-          );
-        }
-
-        // map.current.setFeatureState({ source: 'durango-trails', id: e.features[0].id }, { selected: true });
-        map.current.setFeatureState(
-          { source: 'durango-trails', sourceLayer: 'Durango_Trails_Database', id: e.features[0].id },
-          { selected: true }
-        );
-
-        //zoom map to where clicked trail is
+      // Get all the features (trails)
+      const features = e.features;
+    
+      // Get the clicked trail feature
+      const clickedTrail = features[0];
+      console.log('clicked trail: ', clickedTrail);
+    
+      // Highlight the clicked trail
+      if (clickedTrail) {
+        setSelectedTrail(clickedTrail);
         map.current.flyTo({
           center: e.lngLat,
           zoom: 15
         });
+        map.current.setFeatureState(
+          { source: 'durango-trails', sourceLayer: 'Durango_Trails_Database', id: clickedTrail.id },
+          { selected: true }
+        );
+      }
+    });
 
-        setSelectedTrail(e.features[0].id);
-      });
-
-      //make trails clickable
+      // make trails clickable
       map.current.on('mouseenter', 'durango-trails', () => {
         map.current.getCanvas().style.cursor = 'pointer';
       });
@@ -117,18 +97,11 @@ export default function Map() {
         setZoom(map.current.getZoom().toFixed(2));
       });
     }
-  }, [lng, lat, zoom, selectedTrail]);
+  }, [selectedTrail, lng, lat, zoom]);
 
   return (
     <div className="map-wrap">
-      <div className="sidebar">
-        Longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
-        {/* {loading ? (
-          <div>Loading...</div>
-        ) : (
-          <Sidebar />
-        )} */}
-      </div>
+      <Sidebar trail={selectedTrail} />
       <div ref={mapContainer} className="map-container" />
     </div>
   );
