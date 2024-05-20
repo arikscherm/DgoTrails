@@ -2,13 +2,13 @@ import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from '!mapbox-gl'; // eslint-disable-line import/no-webpack-loader-syntax
 import Sidebar from './Sidebar';
 
-//initialize vars
+// Initialize vars
 const mapboxToken = process.env.REACT_APP_MAPBOX_TOKEN;
 const mapboxURL = process.env.REACT_APP_TILESET_URL;
 mapboxgl.accessToken = mapboxToken;
 
 export default function Map() {
-  // initialize state vars
+  // Initialize state vars
   const mapContainer = useRef(null);
   const map = useRef(null);
   const [lng, setLng] = useState(-107.8647);
@@ -17,72 +17,99 @@ export default function Map() {
   const [selectedTrail, setSelectedTrail] = useState(null);
 
   useEffect(() => {
-    //if no current map exists, create a new one, add nav control and geolocator
+    // If no current map exists, create a new one, add nav control and geolocator
     if (!map.current) {
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/outdoors-v12',
         center: [lng, lat],
-        zoom: zoom
+        zoom: zoom,
       });
 
-      //add nav controls for user and geolocation
+      // Add nav controls for user and geolocation
       map.current.addControl(new mapboxgl.NavigationControl());
       map.current.addControl(
         new mapboxgl.GeolocateControl({
           positionOptions: {
-            enableHighAccuracy: true
+            enableHighAccuracy: true,
           },
-          trackUserLocation: true
+          trackUserLocation: true,
         })
       );
 
-      //on style load, add layer from durango trail data
+      // On style load, add layer from Durango trail data
       map.current.on('style.load', () => {
         map.current.addSource('durango-trails', {
           type: 'vector',
-          url: mapboxURL
+          url: mapboxURL,
         });
 
         map.current.addLayer({
-          'id': 'durango-trails',
-          'type': 'line',
-          'source': 'durango-trails',
+          id: 'durango-trails',
+          type: 'line',
+          source: 'durango-trails',
           'source-layer': 'Durango_Trails_Database',
-          'paint': {
-            'line-color': ['case',
-              ['boolean', ['feature-state', 'selected'], false],
-              '#FF0000',
-              '#AA0000'
-            ],
-            'line-width': 2
-          }
+          paint: {
+            'line-color': ['case', ['boolean', ['feature-state', 'selected'], false], '#FF0000', '#AA0000'],
+            'line-width': 2,
+          },
         });
       });
-    map.current.on('click', 'durango-trails', (e) => {
 
-      // Get all the features (trails)
-      const features = e.features;
+      map.current.on('click', function(e) {
+
+        //Query the map for features at the clicked trail
+        var features = map.current.queryRenderedFeatures(e.point, { layers: ['durango-trails'] });
+        
+        //If no features are found, return early (exit the function)
+        if (!features.length) {
+            return;
+        }
     
-      // Get the clicked trail feature
-      const clickedTrail = features[0];
-      console.log('clicked trail: ', clickedTrail);
+        //Check if a layer with the ID 'selectedTrail' already exists
+        if (typeof map.current.getLayer('selectedTrail') !== "undefined" ){         
+            //If it exists, remove the 'selectedTrail' layer
+            map.current.removeLayer('selectedTrail');
+            
+            //Also remove the 'selectedTrail' source
+            map.current.removeSource('selectedTrail');   
+        }
     
-      // Highlight the clicked trail
-      if (clickedTrail) {
-        setSelectedTrail(clickedTrail);
+        //Get the first feature from the queried features
+        var feature = features[0];
+
+        //Selected data into state variable
+        setSelectedTrail(feature);
+
+        //Fly to selected trail
         map.current.flyTo({
           center: e.lngLat,
-          zoom: 15
+          zoom: 15,
         });
-        map.current.setFeatureState(
-          { source: 'durango-trails', sourceLayer: 'Durango_Trails_Database', id: clickedTrail.id },
-          { selected: true }
-        );
-      }
+    
+        //Add a new source to the map with the ID 'selectedTrail' using GeoJSON data
+        map.current.addSource('selectedTrail', {
+            "type": "geojson",
+            "data": feature.toJSON()
+        });
+    
+        //Add a new layer to the map to visualize the selected trail
+        map.current.addLayer({
+            "id": "selectedTrail",
+            "type": "line",
+            "source": "selectedTrail",
+            "layout": {
+                "line-join": "round", // Defines how lines join
+                "line-cap": "round"   // Defines how line ends look
+            },
+            "paint": {
+                "line-color": "yellow", // Color of the line
+                "line-width": 8         // Width of the line
+            }
+        });
     });
 
-      // make trails clickable
+      // Make trails clickable
       map.current.on('mouseenter', 'durango-trails', () => {
         map.current.getCanvas().style.cursor = 'pointer';
       });
@@ -97,7 +124,7 @@ export default function Map() {
         setZoom(map.current.getZoom().toFixed(2));
       });
     }
-  }, [selectedTrail, lng, lat, zoom]);
+  }, [lng, lat, zoom]);
 
   return (
     <div className="map-wrap">
