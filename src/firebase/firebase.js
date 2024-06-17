@@ -1,19 +1,20 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
+import React from 'react';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyCkkKKBTagSv8adbubxCVsCkBe98qrQye8",
-  authDomain: "braveex-77282.firebaseapp.com",
-  projectId: "braveex-77282",
-  storageBucket: "braveex-77282.appspot.com",
-  messagingSenderId: "608576994048",
-  appId: "1:608576994048:web:bb4f2cae83eac92dcbd1e5",
-  measurementId: "G-K5TQ8Q6MM3"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_MESSAGING_SENDERID,
+  appId: process.env.REACT_APP_APP_ID,
+  measurementId: process.env.REACT_APP_MEASUREMENT_ID
 };
 
 // Initialize Firebase
