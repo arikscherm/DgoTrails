@@ -28,16 +28,17 @@ export default function Map() {
 
       // Add nav controls for user and geolocation
       map.current.addControl(new mapboxgl.NavigationControl());
-      map.current.addControl(
+      const userLocation = map.current.addControl(
         new mapboxgl.GeolocateControl({
           positionOptions: {
             enableHighAccuracy: true,
           },
           trackUserLocation: true,
+          showUserLocation: true,
         })
       );
 
-      // On style load, add layer from Durango trail data
+      //On style load, add layer from Durango trail data
       map.current.on('style.load', () => {
         map.current.addSource('durango-trails', {
           type: 'vector',
