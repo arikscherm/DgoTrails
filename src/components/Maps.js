@@ -38,22 +38,7 @@ export default function Map() {
         })
       );
 
-      const otherUserLocation = [-119.64397737670426, 37.54781498465387]
-      // Add markers for both users
-      let userMarker = new mapboxgl.Marker({ color: 'blue' });
-      let otherUserMarker = new mapboxgl.Marker({ color: 'red' });
-
-      map.on('load', () => {
-        // Place initial markers if locations are known
-        if (userLocation) {
-            userMarker.setLngLat(userLocation).addTo(map);
-        }
-        if (otherUserLocation) {
-            otherUserMarker.setLngLat(otherUserLocation).addTo(map);
-        }
-    });
-
-      // On style load, add layer from Durango trail data
+      //On style load, add layer from Durango trail data
       map.current.on('style.load', () => {
         map.current.addSource('durango-trails', {
           type: 'vector',

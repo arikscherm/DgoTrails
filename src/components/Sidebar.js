@@ -8,6 +8,7 @@ export default function Sidebar({ trail }) {
         <>
         <p><strong>Trail name:</strong> {trail.properties.TRAILNAME}</p>
         <p><strong>Length:</strong> {parseFloat(trail.properties.LENGTH_MILES).toFixed(2)} miles</p>
+        <p><strong>Status: </strong>Open</p>
         <p><strong>Trail system:</strong> {trail.properties.SYSTEM}</p>
         <p><strong>Trail use:</strong> {trail.properties.USAGE}</p>
         <p><strong>Difficulty rating:</strong> {trail.properties.RATING}</p>
