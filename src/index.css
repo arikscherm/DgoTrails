@@ -110,3 +110,26 @@ body::before {
   text-align: center;
   font-family: Optima, sans-serif;
 }
+
+.export-button-container {
+  text-align: center;
+  margin-top: 20px;
+}
+
+
+.export-button:hover {
+  background-color: rgb(20, 40, 60);
+}
+
+.export-button {
+  background-color: rgb(35 55 75 / 90%);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 5px;
+  font-family: monospace;
+  font-weight: bold;
+  font-size: 16px;
+  border: none;
+  transition: background-color 0.3s;
+
+}

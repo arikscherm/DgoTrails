@@ -15,7 +15,7 @@ export default function Sidebar({ trail, totalMiles }) {
         <p><strong>ID:</strong> {trail.properties.osmid}</p>
 
         <p><strong>Total Trip Length:</strong> {parseFloat(totalMiles).toFixed(2)}</p>
-        
+
       </>
       )}
     </div>

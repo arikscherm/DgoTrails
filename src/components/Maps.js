@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from '!mapbox-gl'; // eslint-disable-line import/no-webpack-loader-syntax
 import Sidebar from './Sidebar';
+import Export from './Export';
 
 // Initialize vars
 const mapboxToken = process.env.REACT_APP_MAPBOX_TOKEN;
@@ -188,6 +189,7 @@ export default function Map() {
     <div className="map-wrap">
       <Sidebar trail={selectedTrail} totalMiles={totalMiles} />
       <div ref={mapContainer} className="map-container" />
+      <Export selectedTrails={selectedTrailsRef.current} />
     </div>
   );
 }
