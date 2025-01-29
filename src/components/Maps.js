@@ -130,7 +130,6 @@ export default function Map() {
         }
         
         
-
         //Selected data into state variable
         setSelectedTrail(feature);
     
@@ -155,7 +154,6 @@ export default function Map() {
             }
         });
     });
-
 
 
       // Make trails clickable
