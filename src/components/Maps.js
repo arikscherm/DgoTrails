@@ -80,9 +80,18 @@ export default function Map() {
     
         //Get the first feature from the queried features
         var feature = features[0];
+        
+        // If selected trail was previously selected, exit function
+        const idExists = selectedTrailsRef.current.some(existingTrail => existingTrail.id === feature.id);
+        if (idExists) {
+          return;
+        }
 
-        //Selected data into state variable
-        setSelectedTrail(feature);
+        //Fly to selected trail
+        map.current.flyTo({
+          center: e.lngLat,
+          zoom: 15,
+        });
 
         // Add selected data to trails ref variable
         selectedTrailsRef.current.push(feature.toJSON());
@@ -93,31 +102,17 @@ export default function Map() {
           features : selectedTrailsRef.current
         }
 
-
-        //Fly to selected trail
-        map.current.flyTo({
-          center: e.lngLat,
-          zoom: 15,
-        });
-    
-        //Add a new source to the map with the ID 'selectedTrail' using GeoJSON data
-        map.current.addSource('selectedTrail', {
-            "type": "geojson",
-            "data": feature.toJSON()
-        });
-
-
-        // Update source data with new GeoJSON if id "selectedTrailsSet" already exists
+        // If id "selectedTrailsSet" already exists, update source data with new GeoJSON
         if (map.current.getSource("selectedTrailsSet")) {
           map.current.getSource('selectedTrailsSet').setData(selectedTrailsGeoJSON);
         }
 
-        // Otherwise add source/layer to visualize every trail that has been selected
+        // Otherwise add new source/layer to visualize every trail that has been selected
         else {
           map.current.addSource("selectedTrailsSet", {
             type: "geojson",
             data: selectedTrailsGeoJSON,
-          })
+          });
           map.current.addLayer({
             "id": "selectedTrailsSet",
             "type": "line",
@@ -132,6 +127,17 @@ export default function Map() {
             }
           });
         }
+        
+        
+
+        //Selected data into state variable
+        setSelectedTrail(feature);
+    
+        //Add a new source to the map with the ID 'selectedTrail' using GeoJSON data
+        map.current.addSource('selectedTrail', {
+            "type": "geojson",
+            "data": feature.toJSON()
+        });
     
         //Add a new layer to the map to visualize the selected trail
         map.current.addLayer({
@@ -174,7 +180,7 @@ export default function Map() {
       (total, segment) => total + segment.properties.length_miles, 
       0
     );
-  };
+  }
 
   const totalMiles = calculateTotalMiles();
 
