@@ -5,6 +5,7 @@ import Sidebar from './Sidebar';
 // Initialize vars
 const mapboxToken = process.env.REACT_APP_MAPBOX_TOKEN;
 const mapboxURL = process.env.REACT_APP_TILESET_URL;
+const mapboxVectorLayer = process.env.REACT_APP_VECTOR_LAYER;
 mapboxgl.accessToken = mapboxToken;
 
 export default function Map() {
@@ -15,6 +16,7 @@ export default function Map() {
   const [lat, setLat] = useState(37.2857);
   const [zoom, setZoom] = useState(13);
   const [selectedTrail, setSelectedTrail] = useState(null);
+  const selectedTrailsRef = useRef([]);
 
   useEffect(() => {
     // If no current map exists, create a new one, add nav control and geolocator
@@ -49,7 +51,7 @@ export default function Map() {
           id: 'durango-trails',
           type: 'line',
           source: 'durango-trails',
-          'source-layer': 'Durango_Trails_Database',
+          'source-layer': mapboxVectorLayer,
           paint: {
             'line-color': ['case', ['boolean', ['feature-state', 'selected'], false], '#FF0000', '#AA0000'],
             'line-width': 2,
@@ -68,7 +70,7 @@ export default function Map() {
         }
     
         //Check if a layer with the ID 'selectedTrail' already exists
-        if (typeof map.current.getLayer('selectedTrail') !== "undefined" ){         
+        if (typeof map.current.getSource('selectedTrail') !== "undefined" ){         
             //If it exists, remove the 'selectedTrail' layer
             map.current.removeLayer('selectedTrail');
             
@@ -82,6 +84,16 @@ export default function Map() {
         //Selected data into state variable
         setSelectedTrail(feature);
 
+        // Add selected data to trails ref variable
+        selectedTrailsRef.current.push(feature.toJSON());
+
+        // Update GeoJSON to include new trail
+        const selectedTrailsGeoJSON = {
+          type : 'FeatureCollection',
+          features : selectedTrailsRef.current
+        }
+
+
         //Fly to selected trail
         map.current.flyTo({
           center: e.lngLat,
@@ -93,6 +105,33 @@ export default function Map() {
             "type": "geojson",
             "data": feature.toJSON()
         });
+
+
+        // Update source data with new GeoJSON if id "selectedTrailsSet" already exists
+        if (map.current.getSource("selectedTrailsSet")) {
+          map.current.getSource('selectedTrailsSet').setData(selectedTrailsGeoJSON);
+        }
+
+        // Otherwise add source/layer to visualize every trail that has been selected
+        else {
+          map.current.addSource("selectedTrailsSet", {
+            type: "geojson",
+            data: selectedTrailsGeoJSON,
+          })
+          map.current.addLayer({
+            "id": "selectedTrailsSet",
+            "type": "line",
+            "source": "selectedTrailsSet",
+            "layout": {
+              "line-join": "round",
+              "line-cap": "round"
+            },
+            "paint": {
+              "line-color": "khaki",
+              "line-width": 8
+            }
+          });
+        }
     
         //Add a new layer to the map to visualize the selected trail
         map.current.addLayer({
@@ -109,6 +148,8 @@ export default function Map() {
             }
         });
     });
+
+
 
       // Make trails clickable
       map.current.on('mouseenter', 'durango-trails', () => {
@@ -127,9 +168,19 @@ export default function Map() {
     }
   }, [lng, lat, zoom]);
 
+
+  const calculateTotalMiles = () => {
+    return selectedTrailsRef.current.reduce(
+      (total, segment) => total + segment.properties.length_miles, 
+      0
+    );
+  };
+
+  const totalMiles = calculateTotalMiles();
+
   return (
     <div className="map-wrap">
-      <Sidebar trail={selectedTrail} />
+      <Sidebar trail={selectedTrail} totalMiles={totalMiles} />
       <div ref={mapContainer} className="map-container" />
     </div>
   );
